@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GIVE YOURSELF A LITTLE CHECK-IN</title>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Fredoka:wght@500;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Anuphan',sans-serif;background:#FBE3B9;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;color:#1F2A6B}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #1F2A6B;outline-offset:3px}
+.card{position:relative;width:100%;max-width:440px;min-height:760px;background:#FFF8EA;border-radius:36px;box-shadow:0 24px 60px rgba(31,42,107,.22);overflow:hidden;padding:28px 24px;display:flex;flex-direction:column}
+.blob{position:absolute;border-radius:50%}
+.lang{position:absolute;top:14px;right:14px;z-index:5;display:flex;background:#fff;border:2px solid #1F2A6B;border-radius:999px;padding:2px}
+.lang button{min-width:44px;height:34px;border:0;border-radius:999px;font-weight:700;font-size:13px;background:transparent;color:#1F2A6B}
+.lang button[aria-pressed=true]{background:#1F2A6B;color:#fff}
+.scr{position:relative;flex:1;display:flex;flex-direction:column;animation:rise .55s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.bob{animation:bob 4s ease-in-out infinite}
+.center{align-items:center;text-align:center}
+.disp{font-family:'Fredoka','Anuphan',sans-serif;font-weight:700;margin:0}
+.pill{background:#E4EAF6;font-weight:700;font-size:13px;padding:8px 16px;border-radius:999px;align-self:flex-start}
+.primary{height:54px;border:0;border-radius:999px;background:#1F2A6B;color:#fff;font-weight:700;font-size:16px}
+.ghost{height:54px;border:2px solid #1F2A6B;border-radius:999px;background:transparent;color:#1F2A6B;font-weight:700;font-size:16px;padding:0 22px}
+.primary:disabled{opacity:.4;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.opt{transition:transform .25s ease,box-shadow .25s ease;display:flex;align-items:center;color:#1F2A6B}
+.opt:hover{transform:translateY(-2px)}
+.m{flex-direction:column;gap:2px;text-align:center;padding:16px 8px;border-radius:24px}
+.r{gap:14px;padding:10px 14px;border-radius:20px;text-align:left;width:100%;font-size:16px;font-weight:600}
+.ic{flex:none;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.dots{display:flex;justify-content:center;gap:8px;margin-bottom:16px}
+.dots i{height:12px;border-radius:999px;transition:all .4s ease}
+@media (prefers-reduced-motion:reduce){.scr,.bob{animation:none}.opt,.dots i{transition:none}}
+</style>
+</head>
+<body>
+<main class="card" id="card">
+<div class="blob" style="top:-60px;right:-50px;width:170px;height:170px;background:#FFD66B"></div>
+<div class="blob" style="top:-70px;left:-60px;width:190px;height:150px;background:#1F2A6B;border-radius:50% 60% 40% 60%"></div>
+<div class="blob" style="bottom:-80px;right:-60px;width:220px;height:170px;background:#BFE0FF"></div>
+<div class="lang" role="group" aria-label="Language"><button data-lang="th" aria-pressed="true">TH</button><button data-lang="en" aria-pressed="false">EN</button></div>
+<div id="view" style="position:relative;flex:1;display:flex;flex-direction:column"></div>
+</main>
+<script>
+(function () {
+  var UI = {
+    th: {
+      how: 'วันนี้คุณเป็นอย่างไรบ้าง?',
+      intro: 'บางครั้งเราอาจยุ่งกับสิ่งรอบตัวจนลืมหันกลับมาถามตัวเองว่าตอนนี้รู้สึกอย่างไร\nลองใช้เวลา 1 นาที ตอบคำถามง่าย ๆ 3 ข้อ เพื่อเช็กอินความรู้สึกของตัวเองกัน',
+      start: 'เริ่มเช็กอินกันเลย →', noRight: 'ไม่มีถูกหรือผิด เลือกคำตอบที่ตรงกับตัวเองได้เลย',
+      sticky: 'พักสักหน่อยนะ\nคุณสมควรได้รับมัน!', back: '← ย้อนกลับ', next: 'ต่อไป →', see: 'ดูข้อความของฉัน',
+      pick: 'กรุณาเลือกคำตอบก่อนไปต่อ', q: 'คำถามที่ ', pill: '05 / ผลลัพธ์ของคุณ', noteTitle: 'ข้อความเล็ก ๆ\nถึงคุณ',
+      thanks: 'ขอบคุณที่ให้เวลากับตัวเองในวันนี้นะ', closing: 'อย่าลืมใจดีกับตัวเองในทุก ๆ วันนะ',
+      again: 'ลองอีกครั้ง', home: 'กลับหน้าแรก', save: 'บันทึกข้อความของฉัน (PNG)', saved: 'บันทึกแล้ว · กดเพื่อบันทึกอีกครั้ง', stPre: 'สติกเกอร์อารมณ์ · ',
+      heads: [
+        ['วันนี้รู้สึกอย่างไร?', 'ลองสำรวจความรู้สึกของตัวเองในตอนนี้กัน'],
+        ['อะไรทำให้เรารู้สึกดีหรือสบายใจ?', 'ลองนึกถึงสิ่งเล็ก ๆ ที่ช่วยเติมความสุขให้คุณ'],
+        ['วันนี้อยากให้เวลากับตัวเองเรื่องอะไร?', 'เลือกสิ่งที่อยากทำให้ตัวเองในวันนี้']
+      ],
+      mood: { bright: ['สดใส', 'วันนี้พลังเต็มเปี่ยม'], easy: ['เรื่อย ๆ', 'เป็นวันธรรมดา ๆ'], tired: ['เหนื่อยล้า', 'อยากพักสักหน่อย'], worry: ['กังวล', 'มีเรื่องให้คิด'] },
+      opt: { coffee: 'กาแฟหรือของอร่อย', music: 'ฟังเพลงที่ชอบ', chat: 'พูดคุยกับคนที่สบายใจ', quiet: 'ได้พักหรืออยู่เงียบ ๆ', hobby: 'ทำสิ่งที่ตัวเองชอบ', eyes: 'พักสายตาจากหน้าจอ', walk: 'ลุกขึ้นเดินเล่น', tune: 'ฟังเพลงผ่อนคลาย', snack: 'พักเบรก หาอะไรอร่อย ๆ', slow: 'ให้เวลากับตัวเองโดยไม่ต้องรีบ' },
+      main: {
+        tired: 'วันนี้อาจมีหลายเรื่องให้ต้องจัดการ แต่ไม่จำเป็นต้องทำทุกอย่างให้สมบูรณ์แบบก็ได้นะ ค่อย ๆ ทำไปทีละอย่าง และอย่าลืมแบ่งเวลาให้ตัวเองได้พักด้วย',
+        worry: 'ไม่เป็นไรเลยถ้าวันนี้ยังมีบางเรื่องที่หาคำตอบไม่ได้ ไม่ต้องรีบจัดการทุกอย่างในคราวเดียว ค่อย ๆ ก้าวไปในจังหวะของตัวเองนะ',
+        easy: 'อยากให้รู้ไว้ว่าคุณทำได้ดีแล้วนะ แม้อาจมีบางวันที่ไม่เป็นไปตามที่หวัง แต่ทุกความพยายามของคุณก็มีความหมายเสมอ',
+        rest: 'การพักไม่ได้แปลว่าเรากำลังหยุดก้าวไปข้างหน้า บางครั้งการหยุดพักสักนิดก็ช่วยให้เรากลับมามีพลังได้อีกครั้ง',
+        bright: 'ดีใจที่วันนี้มีเรื่องให้ยิ้มนะ อย่าลืมเก็บช่วงเวลาดี ๆ เหล่านี้ไว้เป็นพลังใจ และส่งต่อความสดใสให้ตัวเองกับคนรอบข้างด้วยนะ'
+      },
+      e2: { coffee: 'ลองเติมความสุขเล็ก ๆ ด้วยกาแฟหรือของอร่อยที่ชอบ', music: 'ลองเปิดเพลงที่ชอบสักเพลง แล้วปล่อยใจไปกับมัน', chat: 'ลองคุยกับคนที่ทำให้สบายใจ แค่ไม่กี่ประโยคก็อุ่นใจขึ้นแล้ว', quiet: 'ลองหาเวลาเงียบ ๆ ให้ตัวเองสักพัก', hobby: 'ลองแบ่งเวลาสั้น ๆ ไปทำสิ่งที่ตัวเองชอบ' },
+      e3: { eyes: 'พักสายตาจากหน้าจอสัก 5 นาที', walk: 'ลุกขึ้นเดินเล่นสักรอบ', tune: 'ฟังเพลงผ่อนคลายให้ใจช้าลง', snack: 'พักเบรกแล้วหาอะไรอร่อย ๆ ทาน', slow: 'ให้เวลากับตัวเองโดยไม่ต้องรีบ' },
+      join: function (a, b) { return a + ' และวันนี้ลอง' + b + 'ดูนะ'; },
+      stick: { bright: 'วันสดใส', easy: 'วันธรรมดา', tired: 'วันฝนตก', worry: 'วันมีเมฆ' }
+    },
+    en: {
+      how: 'How are you feeling today?',
+      intro: "Sometimes, we get so caught up in our daily routines that we forget to check in with ourselves.\nTake just one minute to pause, reflect, and answer three simple questions about how you're feeling.",
+      start: 'START YOUR CHECK-IN →', noRight: 'No right or wrong answers. Just choose what feels right for you.',
+      sticky: 'Take a break.\nYou deserve it!', back: '← Back', next: 'Next →', see: 'See My Note',
+      pick: 'Please choose an answer to continue', q: 'QUESTION ', pill: '05 / YOUR RESULT', noteTitle: 'A LITTLE NOTE\nFOR YOU',
+      thanks: 'Thank you for taking a moment for yourself today.', closing: "Don't forget to be kind to yourself, today and every day.",
+      again: 'TRY AGAIN', home: 'BACK TO HOME', save: 'SAVE MY NOTE', saved: 'Saved · tap to save again', stPre: 'Mood Sticker · ',
+      heads: [
+        ['HOW ARE YOU FEELING TODAY?', "Take a moment to notice how you're feeling right now."],
+        ['WHAT MAKES YOU FEEL GOOD?', 'Think about the little things that bring you comfort and happiness.'],
+        ['WHAT WOULD YOU LIKE TO DO FOR YOURSELF TODAY?', "Choose one little thing you'd like to make time for today."]
+      ],
+      mood: { bright: ['Happy & Energized', 'Full of energy today'], easy: ['Just Okay', 'An ordinary day'], tired: ['Tired & Drained', 'I could use a rest'], worry: ['Worried & Overthinking', 'A lot on my mind'] },
+      opt: { coffee: 'A Coffee or Something Delicious', music: 'Listening to My Favorite Music', chat: 'Talking to Someone I Feel Comfortable With', quiet: 'Having Some Quiet Time', hobby: 'Doing Something I Love', eyes: 'Taking a Screen Break', walk: 'Going for a Short Walk', tune: 'Listening to Relaxing Music', snack: 'Taking a Little Break', slow: 'Slowing Down and Taking Time for Myself' },
+      main: {
+        tired: "There may be a lot to handle today, but not everything has to be perfect. Take it one step at a time, and remember to make time to rest.",
+        worry: "It's okay if some things still don't have answers today. You don't have to sort everything out at once. Take your next steps at your own pace.",
+        easy: "We want you to know you're doing well. Even when some days don't go as hoped, every effort you make always matters.",
+        rest: "Resting doesn't mean you've stopped moving forward. Sometimes a little pause is exactly what helps you come back with energy.",
+        bright: "We're glad there's something to smile about today. Keep these good moments as fuel, and share that brightness with yourself and the people around you."
+      },
+      e2: { coffee: 'Try adding a little joy with a coffee or something delicious', music: 'Try putting on a favorite song and letting your mind drift with it', chat: 'Try talking with someone you feel comfortable with; a few sentences can feel warming', quiet: 'Try finding some quiet time for yourself', hobby: 'Try setting aside a short time for something you love' },
+      e3: { eyes: 'rest your eyes from the screen for 5 minutes', walk: 'go for a short walk', tune: 'listen to some relaxing music to slow your mind', snack: 'take a little break and enjoy something tasty', slow: 'slow down and take time for yourself' },
+      join: function (a, b) { return a + '. And today, try to ' + b + '.'; },
+      stick: { bright: 'Sunny Day', easy: 'Neutral Day', tired: 'Rainy Day', worry: 'Cloudy Mood' }
+    }
+  };
+  var Q1 = [['bright', '#FFF1C7', '#F5CF6A'], ['easy', '#E1EEFC', '#A9CBEF'], ['tired', '#E9E2FA', '#BDB0EE'], ['worry', '#DFF2E6', '#A6D6B8']];
+  var ICON = {
+    bright: '<circle cx="32" cy="32" r="14" fill="#FFC93C"/><path d="M32 6v8M32 50v8M6 32h8M50 32h8M13 13l6 6M45 45l6 6M13 51l6-6M45 19l6-6" stroke="#FFB020" stroke-width="4" stroke-linecap="round"/><circle cx="27" cy="31" r="1.8" fill="#1F2A6B"/><circle cx="37" cy="31" r="1.8" fill="#1F2A6B"/><path d="M28 37q4 4 8 0" stroke="#1F2A6B" stroke-width="2" fill="none" stroke-linecap="round"/>',
+    easy: '<circle cx="24" cy="22" r="11" fill="#FFC93C"/><path d="M18 50a9 9 0 0 1 1-18 13 13 0 0 1 25 3 8 8 0 0 1-1 15z" fill="#fff" stroke="#DCE6F5" stroke-width="2"/>',
+    tired: '<path d="M16 40a9 9 0 0 1 1-18 13 13 0 0 1 25 3 8 8 0 0 1-1 15z" fill="#9C8FE8"/><path d="M25 32q2 2 4 0M35 32q2 2 4 0" stroke="#1F2A6B" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M20 48l-2 6M30 48l-2 6M40 48l-2 6" stroke="#5B8DEF" stroke-width="4" stroke-linecap="round"/>',
+    worry: '<path d="M14 50a9 9 0 0 1 1-18 13 13 0 0 1 25 3 8 8 0 0 1-1 15z" fill="#fff" stroke="#D9DEE9" stroke-width="2"/><circle cx="24" cy="40" r="1.8" fill="#1F2A6B"/><circle cx="34" cy="40" r="1.8" fill="#1F2A6B"/><path d="M26 46q3-3 6 0" stroke="#1F2A6B" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M46 12q8 0 8 6t-8 6" stroke="#6B7399" stroke-width="2.5" fill="none" stroke-linecap="round"/>'
+  };
+  var LIST = [null,
+    [['coffee', '#FFD9A8', 'M5 9h11v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4zM16 10h2a2 2 0 0 1 0 4h-2M8 3v3M12 3v3'], ['music', '#C9E3FF', 'M4 15v-3a8 8 0 0 1 16 0v3M4 15h3v5H4zM17 15h3v5h-3z'], ['chat', '#FFC4D6', 'M4 5h16v11H9l-4 4v-4H4z'], ['quiet', '#CDEBD6', 'M5 19C5 10 10 5 19 5c0 9-5 14-14 14zM5 19l8-8'], ['hobby', '#FFE98F', 'M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z']],
+    [['eyes', '#C9E3FF', 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z'], ['walk', '#CDEBD6', 'M12 8l-3 4 3 3-1 5M12 8l3 3 3 1M9 12l-3 1M13 4h.01'], ['tune', '#E0D6F8', 'M9 18V6l10-2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z'], ['snack', '#FFD9A8', 'M4 11h16l-1 8H5zM7 11a5 5 0 0 1 10 0'], ['slow', '#FFC4D6', 'M12 20S4 14.5 4 9a4 4 0 0 1 8-1 4 4 0 0 1 8 1c0 5.5-8 11-8 11z']]
+  ];
+  var S = { lang: 'th', step: 0, a: [null, null, null], saved: false };
+  var view = document.getElementById('view');
+
+  function result() {
+    var T = UI[S.lang], a1 = S.a[0], a2 = S.a[1], a3 = S.a[2];
+    var rest = a3 === 'slow' || a3 === 'eyes' || a2 === 'quiet';
+    var key = (a1 === 'easy' && rest) ? 'rest' : a1;
+    return { main: T.main[key], extra: T.join(T.e2[a2], T.e3[a3]), mood: T.stick[a1], sticker: T.stPre + T.stick[a1] };
+  }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function render() {
+    var T = UI[S.lang], s = S.step, h = '';
+    document.documentElement.lang = S.lang;
+    document.querySelectorAll('.lang button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.lang === S.lang); });
+    if (s === 0) {
+      h = '<div class="scr center" style="padding-top:72px">' +
+        '<h1 class="disp" style="font-size:30px;line-height:1.1;letter-spacing:.02em">GIVE YOURSELF A</h1>' +
+        '<h1 class="disp" style="font-size:64px;line-height:1">LITTLE<br>CHECK-IN</h1>' +
+        '<div style="margin-top:18px;background:#FFD66B;font-weight:700;font-size:21px;padding:8px 22px;border-radius:14px;transform:rotate(-2deg)">' + esc(T.how) + '</div>' +
+        '<p style="margin:20px 0 0;color:#3A4378;font-size:15px;line-height:1.7;white-space:pre-line">' + esc(T.intro) + '</p>' +
+        '<button class="primary" data-act="start" style="margin-top:24px;padding:0 34px;font-size:17px;box-shadow:0 8px 0 #121A4A">' + esc(T.start) + '</button>' +
+        '<p style="margin:18px 0 0;color:#3A4378;font-size:13px">' + esc(T.noRight) + '</p>' +
+        '<div style="margin-top:auto;padding-top:24px;display:flex;align-items:flex-end;gap:14px">' +
+        '<div class="bob" style="position:relative;width:88px;height:92px"><div style="position:absolute;left:0;top:18px;width:66px;height:62px;border-radius:12px 12px 32px 32px;background:#fff;box-shadow:inset -6px -6px 0 #EDE3D2"></div><div style="position:absolute;right:-2px;top:30px;width:26px;height:30px;border:7px solid #fff;border-radius:50%"></div><div style="position:absolute;left:18px;top:40px;width:7px;height:7px;border-radius:50%;background:#1F2A6B"></div><div style="position:absolute;left:42px;top:40px;width:7px;height:7px;border-radius:50%;background:#1F2A6B"></div><div style="position:absolute;left:25px;top:50px;width:16px;height:8px;border-bottom:3px solid #1F2A6B;border-radius:0 0 16px 16px"></div><div style="position:absolute;left:8px;top:50px;width:10px;height:7px;border-radius:50%;background:#FFB3C7"></div><div style="position:absolute;left:48px;top:50px;width:10px;height:7px;border-radius:50%;background:#FFB3C7"></div></div>' +
+        '<div style="background:#FFE98F;font-family:\'Caveat\',\'Anuphan\',cursive;font-size:20px;line-height:1.2;padding:12px 14px;transform:rotate(-5deg);box-shadow:0 6px 12px rgba(31,42,107,.15);white-space:pre-line">' + esc(T.sticky) + '</div></div></div>';
+    } else if (s <= 3) {
+      var cur = S.a[s - 1], hd = T.heads[s - 1], body = '';
+      if (s === 1) {
+        body = '<div class="grid">' + Q1.map(function (m) {
+          var on = cur === m[0];
+          return '<button class="opt m" data-pick="' + m[0] + '" aria-pressed="' + on + '" style="background:' + m[1] + ';border:3px solid ' + (on ? '#1F2A6B' : m[2]) + ';box-shadow:' + (on ? '0 8px 18px rgba(31,42,107,.25)' : '0 3px 0 ' + m[2]) + '"><svg viewBox="0 0 64 64" width="72" height="72" aria-hidden="true">' + ICON[m[0]] + '</svg><span style="font-weight:700;font-size:18px">' + esc(T.mood[m[0]][0]) + '</span><span style="font-size:13px;color:#3A4378">' + esc(T.mood[m[0]][1]) + '</span></button>';
+        }).join('') + '</div>';
+      } else {
+        body = '<div style="display:flex;flex-direction:column;gap:10px">' + LIST[s - 1].map(function (o) {
+          var on = cur === o[0];
+          return '<button class="opt r" data-pick="' + o[0] + '" aria-pressed="' + on + '" style="background:' + (on ? '#fff' : '#FFF1D6') + ';border:3px solid ' + (on ? '#1F2A6B' : '#F5DDA8') + ';box-shadow:' + (on ? '0 6px 14px rgba(31,42,107,.2)' : 'none') + '"><span class="ic" style="background:' + o[1] + '"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#1F2A6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + o[2] + '"/></svg></span><span>' + esc(T.opt[o[0]]) + '</span></button>';
+        }).join('') + '</div>';
+      }
+      h = '<div class="scr"><div class="pill">0' + (s + 1) + ' / ' + T.q + s + ' · ' + s + '/3</div>' +
+        '<h2 class="disp" style="margin:26px 0 0;font-size:28px;line-height:1.25">' + esc(hd[0]) + '</h2>' +
+        '<p style="margin:6px 0 18px;color:#3A4378;font-size:14px">' + esc(hd[1]) + '</p>' + body +
+        '<div style="margin-top:auto;padding-top:22px"><div role="status" style="min-height:20px;text-align:center;font-size:13px;font-weight:600;color:#3A4378;margin-bottom:6px">' + (cur ? '' : esc(T.pick)) + '</div>' +
+        '<div class="dots">' + [1, 2, 3].map(function (i) { return '<i style="width:' + (i === s ? 28 : 12) + 'px;background:' + (i === s ? '#1F2A6B' : '#D5CFE6') + '"></i>'; }).join('') + '</div>' +
+        '<div style="display:flex;gap:10px"><button class="ghost" data-act="back">' + esc(T.back) + '</button><button class="primary" data-act="next" style="flex:1"' + (cur ? '' : ' disabled') + '>' + esc(s === 3 ? T.see : T.next) + '</button></div></div></div>';
+    } else {
+      var r = result();
+      h = '<div class="scr center"><div class="pill">' + esc(T.pill) + '</div>' +
+        '<h2 class="disp" style="margin:16px 0 0;font-size:34px;line-height:1.15;white-space:pre-line">' + esc(T.noteTitle) + '</h2>' +
+        '<p style="margin:8px 0 0;font-size:14px;color:#3A4378">' + esc(T.thanks) + '</p>' +
+        '<div style="margin-top:12px;background:#FFC4D6;font-weight:700;font-size:13px;padding:6px 14px;border-radius:999px;transform:rotate(-3deg)">' + esc(r.sticker) + '</div>' +
+        '<div style="margin-top:16px;width:100%;background:#fff;border-radius:10px;padding:22px 20px;transform:rotate(-1.5deg);box-shadow:0 10px 24px rgba(31,42,107,.15);font-size:16px;line-height:1.85"><div style="font-weight:600">' + esc(r.main) + '</div><div style="margin-top:12px;font-size:14.5px;color:#3A4378">' + esc(r.extra) + '</div></div>' +
+        '<div style="margin-top:18px;background:#FFC4D6;border-radius:22px;padding:14px 18px;width:100%"><div class="disp" style="font-size:18px;letter-spacing:.03em">YOU ARE DOING JUST FINE.</div><div style="font-size:14px;margin-top:2px">' + esc(T.closing) + '</div></div>' +
+        '<div style="margin-top:auto;padding-top:20px;width:100%;display:flex;flex-direction:column;gap:10px"><button class="primary" data-act="save">' + esc(S.saved ? T.saved : T.save) + '</button><button class="ghost" data-act="again">' + esc(T.again) + '</button><button class="ghost" data-act="home">' + esc(T.home) + '</button></div></div>';
+    }
+    view.innerHTML = h;
+  }
+
+  function savePng() {
+    var en = S.lang === 'en', T = UI[S.lang], r = result();
+    var go = function () {
+      var c = document.createElement('canvas'); c.width = 1080; c.height = 1350;
+      var x = c.getContext('2d');
+      x.fillStyle = '#FBE3B9'; x.fillRect(0, 0, 1080, 1350);
+      x.fillStyle = '#FFD66B'; x.beginPath(); x.arc(1020, 40, 200, 0, 7); x.fill();
+      x.fillStyle = '#1F2A6B'; x.beginPath(); x.arc(40, 20, 220, 0, 7); x.fill();
+      x.fillStyle = '#BFE0FF'; x.beginPath(); x.arc(980, 1330, 260, 0, 7); x.fill();
+      x.textAlign = 'center'; x.fillStyle = '#1F2A6B';
+      x.font = '700 60px Fredoka, Anuphan, sans-serif'; x.fillText('GIVE YOURSELF A', 540, 300);
+      x.font = '700 96px Fredoka, Anuphan, sans-serif'; x.fillText('LITTLE CHECK-IN', 540, 405);
+      x.fillStyle = '#FFC4D6'; x.fillRect(290, 450, 500, 64);
+      x.fillStyle = '#1F2A6B'; x.font = '700 30px Anuphan, sans-serif'; x.fillText(r.mood, 540, 493);
+      x.fillStyle = '#fff'; x.fillRect(110, 560, 860, 560);
+      x.fillStyle = '#1F2A6B'; x.textAlign = 'left';
+      var y = 630;
+      function wrap(t, size) {
+        x.font = '600 ' + size + 'px Anuphan, sans-serif';
+        var line = '', parts = en ? t.split(' ').map(function (w, i) { return (i ? ' ' : '') + w; }) : Array.from(t);
+        parts.forEach(function (p) {
+          if (x.measureText(line + p).width > 760) { x.fillText(line, 150, y); y += size * 1.7; line = p.trim() ? p.replace(/^\s+/, '') : ''; } else line += p;
+        });
+        x.fillText(line, 150, y); y += size * 1.7;
+      }
+      wrap(r.main, en ? 32 : 36); y += 14; wrap(r.extra, en ? 28 : 32);
+      x.textAlign = 'center'; x.font = '700 44px Fredoka, sans-serif'; x.fillText('YOU ARE DOING JUST FINE.', 540, 1210);
+      x.font = '500 28px Anuphan, sans-serif'; x.fillText(T.closing, 540, 1262);
+      c.toBlob(function (b) {
+        var a = document.createElement('a'); a.href = URL.createObjectURL(b);
+        a.download = 'my-little-check-in-' + S.lang + '.png'; document.body.appendChild(a); a.click(); a.remove();
+      });
+      S.saved = true; render();
+    };
+    if (document.fonts && document.fonts.load) {
+      Promise.all([document.fonts.load('600 36px Anuphan'), document.fonts.load('700 60px Fredoka')]).then(go, go);
+    } else go();
+  }
+
+  document.getElementById('card').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.lang) { S.lang = b.dataset.lang; S.saved = false; return render(); }
+    if (b.dataset.pick) { S.a[S.step - 1] = b.dataset.pick; return render(); }
+    var act = b.dataset.act;
+    if (act === 'start') S.step = 1;
+    else if (act === 'back') S.step -= 1;
+    else if (act === 'next') { if (!S.a[S.step - 1]) return; S.step += 1; }
+    else if (act === 'again') { S.a = [null, null, null]; S.step = 1; S.saved = false; }
+    else if (act === 'home') { S.a = [null, null, null]; S.step = 0; S.saved = false; }
+    else if (act === 'save') return savePng();
+    render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>
